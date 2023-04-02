@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 
 function Square(props) {
+	//функциональный компонент
 	return (
 		<button className="square" onClick={props.onClick}>
 			{props.value}
@@ -11,18 +12,21 @@ function Square(props) {
 }
 
 class Board extends React.Component {
+	//классовый компонент
 	renderSquare(i) {
 		return (
 			<Square
 				value={this.props.squares[i]}
-				onClick={() => this.props.onClick(i)}
+				onClick={() => {
+					this.props.onClick(i);
+				}}
 			/>
 		);
 	}
-
 	render() {
 		return (
 			<div>
+				{/* <div className="status">{status}</div> */}
 				<div className="board-row">
 					{this.renderSquare(0)}
 					{this.renderSquare(1)}
@@ -56,7 +60,6 @@ class Game extends React.Component {
 			xIsNext: true,
 		};
 	}
-
 	handleClick(i) {
 		const history = this.state.history.slice(0, this.state.stepNumber + 1);
 		const current = history[history.length - 1];
@@ -64,46 +67,52 @@ class Game extends React.Component {
 		if (calculateWinner(squares) || squares[i]) {
 			return;
 		}
-		squares[i] = this.state.xIsNext ? "X" : "O";
+		squares[i] = this.state.xIsNext ? "x" : "o";
 		this.setState({
-			history: history.concat([
-				{
-					squares: squares,
-				},
-			]),
+			history: history.concat([{ squares: squares }]),
 			stepNumber: history.length,
 			xIsNext: !this.state.xIsNext,
 		});
 	}
-
 	jumpTo(step) {
 		this.setState({
 			stepNumber: step,
 			xIsNext: step % 2 === 0,
 		});
 	}
-
 	render() {
 		const history = this.state.history;
 		const current = history[this.state.stepNumber];
 		const winner = calculateWinner(current.squares);
-
+		let position = [];
 		const moves = history.map((step, move) => {
-			const desc = move ? "Go to move #" + move : "Go to game start";
+			if (move) {
+				for (let i = 0; i < 9; i++) {
+					if (history[move].squares[i] !== history[move - 1].squares[i]) {
+						position = [~~(i / 3) + 1, (i % 3) + 1];
+					}
+				}
+			}
+			const desc = move ? "Перейти к ходу #" + move : "К началу игры";
+			const deskPosition = move
+				? " (строка " + position[0] + ", столбец " + position[1] + ")"
+				: "";
+
 			return (
 				<li key={move}>
-					<button onClick={() => this.jumpTo(move)}>{desc}</button>
+					<button onClick={() => this.jumpTo(move)}>
+						{desc}
+						{deskPosition}
+					</button>
 				</li>
 			);
 		});
-
 		let status;
 		if (winner) {
-			status = "Winner: " + winner;
+			status = "Выиграл " + winner;
 		} else {
-			status = "Next player: " + (this.state.xIsNext ? "X" : "O");
+			status = "Следующий ход " + (this.state.xIsNext ? "x" : "o");
 		}
-
 		return (
 			<div className="game">
 				<div className="game-board">
